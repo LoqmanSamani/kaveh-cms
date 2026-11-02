@@ -3,43 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#101720">
+<meta name="theme-color" content="#0f2747">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kaveh CMS">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Kaveh CMS</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
+<link rel="preload" href="/fonts/kalam-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
+<script src="/theme.js"></script>
 </head>
 <body>
-<header>
- <div class="logo" aria-hidden="true">
-  <svg viewBox="0 0 100 100">
-   <path d="M49 48 L49 15 L44 22 L54 22 L49 15" fill="#168cff" stroke="#67c0ff" stroke-width="2"/>
-   <path d="M49 48 L17 66 L27 67 L22 58 L17 66" fill="#ff333b" stroke="#ff8585" stroke-width="2"/>
-   <path d="M49 48 L81 66 L71 67 L76 58 L81 66" fill="#24d34c" stroke="#83ff9b" stroke-width="2"/>
-   <path d="M49 37 L61 44 L49 51 L37 44 Z M37 44 L49 51 L49 67 L37 60 Z M61 44 L49 51 L49 67 L61 60 Z" fill="#6d7b89" stroke="#d3dde6" stroke-width="1"/>
-   <text x="49" y="10" font-size="10" text-anchor="middle" fill="#61baff" font-weight="bold">Z</text>
-   <text x="10" y="78" font-size="10" text-anchor="middle" fill="#ff545b" font-weight="bold">X</text>
-   <text x="89" y="78" font-size="10" text-anchor="middle" fill="#52ee70" font-weight="bold">Y</text>
-  </svg>
- </div>
- <div class="brand"><h1>Kaveh CMS</h1><p>Digitales CMS-Notizbuch</p></div>
- <div class="usermenu" id="userMenu" hidden>
-  <span class="muted" id="userName"></span>
-  <button type="button" id="settingsBtn" title="Einstellungen">Konto</button>
-  <button type="button" id="logoutBtn">Abmelden</button>
- </div>
-</header>
-<div id="offlineBar" class="offline" hidden>Offline – nur Lesen. Änderungen sind erst wieder mit Internetverbindung möglich.</div>
 
-<!-- Login / setup -->
-<main id="authView" class="single" hidden>
- <section class="panel authpanel">
-  <h2 id="authTitle">Anmelden</h2>
-  <p class="small" id="authIntro"></p>
+<!-- ============================== login / setup -->
+<div id="authView" class="authview" hidden>
+ <div class="authcard">
+  <div class="authbrand"><span class="logo-axes" data-logo></span><div><b>Kaveh <span>CMS</span></b><small>CNC · Programme · Management</small></div></div>
+  <h1 id="authTitle">Anmelden</h1>
+  <p class="muted" id="authIntro"></p>
   <form id="authForm" autocomplete="on">
    <label for="authUser">Benutzername</label>
    <input id="authUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
@@ -50,110 +32,314 @@
     <input id="authPass2" type="password" autocomplete="new-password">
    </div>
    <p class="error" id="authError" hidden></p>
-   <div class="actions"><button class="primary" type="submit" id="authSubmit">Anmelden</button></div>
+   <button class="btn primary wide" type="submit" id="authSubmit">Anmelden</button>
   </form>
-  <p class="small" id="authSwitchWrap" hidden><a href="#" id="authSwitch">Neues Konto erstellen</a></p>
- </section>
-</main>
+  <p class="muted center" id="authSwitchWrap" hidden><a href="#" id="authSwitch">Neues Konto erstellen</a></p>
+  <button type="button" class="btn ghost small themebtn" data-theme-toggle title="Hell/Dunkel umschalten"></button>
+ </div>
+</div>
 
-<!-- App -->
-<main id="appView" hidden>
- <section class="panel searchpanel">
-  <h2>Programm suchen</h2>
-  <form class="searchrow" id="searchForm" role="search">
-   <input id="search" type="search" placeholder="Programmnummer oder Stichwort, z. B. 1645540" autocomplete="off" enterkeyhint="search">
-   <button class="primary" type="submit">Suchen</button>
-  </form>
-  <div id="searchResult" class="empty"></div>
- </section>
-
- <section class="panel" id="formPanel">
-  <h2 id="formTitle">Programm hinzufügen</h2>
-  <form id="recordForm" novalidate>
-   <label for="number">Programmnummer *</label><input id="number" required placeholder="z. B. 1645540" autocomplete="off">
-   <div class="coords">
-    <div><label for="x">X</label><input id="x" placeholder="240" inputmode="decimal" autocomplete="off"></div>
-    <div><label for="y">Y</label><input id="y" placeholder="560" inputmode="decimal" autocomplete="off"></div>
-    <div><label for="z">Z</label><input id="z" placeholder="370" inputmode="decimal" autocomplete="off"></div>
+<!-- ============================== app -->
+<div id="appView" class="app" hidden>
+ <header class="topbar">
+  <button type="button" class="iconbtn menubtn" id="menuBtn" aria-label="Menü" data-icon="menu"></button>
+  <a class="brand" href="#/">
+   <span class="logo-axes" data-logo></span>
+   <span class="brandtext"><b>Kaveh <span>CMS</span></b><small>CNC · Programme · Management</small></span>
+  </a>
+  <div class="globalsearch">
+   <span data-icon="search"></span>
+   <input id="globalSearch" type="search" placeholder="Programm suchen …" autocomplete="off" aria-label="Programm suchen">
+   <div class="searchdrop" id="searchDrop" hidden></div>
+  </div>
+  <nav class="topactions">
+   <a class="topbtn" href="#/einstellungen"><span data-icon="gear"></span><span>Einstellungen</span></a>
+   <a class="topbtn" href="#/backup"><span data-icon="cloud"></span><span>Backup</span></a>
+   <button type="button" class="topbtn" id="topPrint"><span data-icon="printer"></span><span>Drucken</span></button>
+   <button type="button" class="topbtn" data-theme-toggle title="Hell/Dunkel umschalten"></button>
+   <div class="usermenu">
+    <button type="button" class="avatar" id="avatarBtn" aria-label="Benutzermenü" aria-haspopup="true"></button>
+    <div class="popover" id="userPop" hidden>
+     <div class="pophead"><b id="userName"></b><small id="userRole"></small></div>
+     <a href="#/einstellungen" class="popitem"><span data-icon="gear"></span>Konto &amp; Einstellungen</a>
+     <button type="button" class="popitem" id="logoutBtn"><span data-icon="logout"></span>Abmelden</button>
+    </div>
    </div>
-   <label for="notes">Hinweise / Beschreibung</label><textarea id="notes" rows="4" placeholder="Wichtige Hinweise zum Schneiden …"></textarea>
-   <div class="photohead">
-    <label>Tile-Fotos</label>
-    <label class="filebtn small-btn" for="photo">+ Fotos hinzufügen</label>
-    <input id="photo" type="file" accept="image/*" multiple hidden>
-   </div>
-   <div id="photoEditor" class="thumbs"></div>
-   <p class="small">Beliebig viele Fotos pro Programm. Fotos werden vor dem Hochladen verkleinert und auf dem Server gespeichert.</p>
-   <p class="error" id="formError" hidden></p>
-   <div class="actions"><button class="primary" type="submit" id="saveBtn">Speichern</button><button type="button" id="newBtn">Leeren</button></div>
-  </form>
- </section>
+  </nav>
+ </header>
 
- <section class="panel">
-  <h2>Daten sichern &amp; übertragen</h2>
-  <div class="actions"><a class="filebtn" id="exportBtn" href="/api/export" download>Backup exportieren</a><label class="filebtn" for="importFile">Backup importieren</label><input id="importFile" type="file" accept=".zip,.json,application/zip,application/json" hidden></div>
-  <p class="small">Das Backup ist eine ZIP-Datei mit allen Programmen und Fotos. Beim Import werden gleiche Programmnummern durch die importierten Daten ersetzt. Backups der alten Offline-Version (.json) können ebenfalls importiert werden.</p>
-  <div class="actions"><button type="button" id="sampleBtn">Beispieldatensatz laden</button></div>
-  <p class="small">Beispielwerte sind nur Demo-Daten; vor jeder Maschinenverwendung gegen die freigegebenen Produktionsdaten prüfen.</p>
- </section>
+ <div class="shell">
+  <aside class="sidebar" id="sidebar">
+   <nav class="mainnav">
+    <a href="#/" data-nav="home"><span data-icon="home"></span><span>Startseite</span></a>
+    <a href="#/programme" data-nav="list"><span data-icon="file"></span><span>Programme</span></a>
+    <button type="button" id="navNew"><span data-icon="plus"></span><span>Neues Programm</span></button>
+    <a href="#/backup" data-nav="backup"><span data-icon="swap"></span><span>Import / Export</span></a>
+    <a href="#/einstellungen" data-nav="settings"><span data-icon="gear"></span><span>Einstellungen</span></a>
+    <a href="#/hilfe" data-nav="help"><span data-icon="help"></span><span>Hilfe</span></a>
+   </nav>
+   <section class="savedlist">
+    <div class="savedhead"><span data-icon="folder"></span><span>Gespeicherte Programme</span><span class="badge" id="sideCount">0</span></div>
+    <div class="sidesearch"><span data-icon="search"></span><input id="sideFilter" type="search" placeholder="Programm suchen …" autocomplete="off" aria-label="Liste filtern"></div>
+    <div class="sideitems" id="sideItems"></div>
+   </section>
+   <button type="button" class="collapse" id="collapseBtn"><span data-icon="chevleft"></span><span>Liste einklappen</span></button>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
 
- <section class="panel recordsPanel">
-  <div class="recordhead"><h2>Gespeicherte Programme</h2><span id="count" class="muted">0 Programme</span></div>
-  <input id="filter" type="search" placeholder="Liste filtern …" autocomplete="off">
-  <div id="recordsList" class="empty">Noch keine Einträge.</div>
- </section>
-</main>
-<footer>Kaveh CMS</footer>
+  <main class="content" id="content">
+   <div id="offlineBar" class="offline" hidden>Offline – nur Lesen. Änderungen sind erst wieder mit Internetverbindung möglich.</div>
 
-<!-- Settings dialog -->
-<dialog id="settingsDlg">
- <form method="dialog" class="dlghead"><h2>Konto</h2><button value="close" aria-label="Schließen">✕</button></form>
- <section>
-  <h3>Passwort ändern</h3>
-  <form id="pwForm">
-   <input type="text" autocomplete="username" id="pwUser" hidden>
-   <label for="pwCurrent">Aktuelles Passwort</label><input id="pwCurrent" type="password" autocomplete="current-password" required>
-   <label for="pwNew">Neues Passwort (mind. 8 Zeichen)</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required>
-   <label for="pwNew2">Neues Passwort wiederholen</label><input id="pwNew2" type="password" autocomplete="new-password" required>
-   <p class="error" id="pwError" hidden></p>
-   <div class="actions"><button class="primary" type="submit">Passwort ändern</button></div>
-  </form>
- </section>
- <section id="adminSection" hidden>
-  <h3>Benutzer verwalten</h3>
-  <div id="userList"></div>
-  <form id="newUserForm" class="newuser">
-   <h4>Neuen Benutzer anlegen</h4>
-   <label for="nuName">Benutzername</label><input id="nuName" autocomplete="off" autocapitalize="none" required>
-   <label for="nuPass">Passwort (mind. 8 Zeichen)</label><input id="nuPass" type="text" autocomplete="off" minlength="8" required>
-   <label class="check"><input id="nuAdmin" type="checkbox"> Administrator</label>
-   <p class="error" id="nuError" hidden></p>
-   <div class="actions"><button class="primary" type="submit">Benutzer anlegen</button></div>
-  </form>
- </section>
-</dialog>
+   <!-- Startseite -->
+   <section class="view" id="view-home" hidden>
+    <div class="pagehead"><div><h1 id="homeHello">Willkommen</h1><p class="muted">Dein digitales CMS-Notizbuch für Programme, Koordinaten, Fotos und Zeichnungen.</p></div>
+     <button type="button" class="btn primary" data-new><span data-icon="plus"></span>Neues Programm</button></div>
+    <div class="stats" id="homeStats"></div>
+    <h2 class="sectiontitle">Zuletzt bearbeitet</h2>
+    <div class="cards" id="homeRecent"></div>
+   </section>
 
-<!-- Confirm / prompt dialog -->
+   <!-- Programme -->
+   <section class="view" id="view-list" hidden>
+    <div class="pagehead"><div><h1>Programme</h1><p class="muted" id="listCount"></p></div>
+     <button type="button" class="btn primary" data-new><span data-icon="plus"></span>Neues Programm</button></div>
+    <div class="toolbar">
+     <div class="field-icon"><span data-icon="search"></span><input id="listFilter" type="search" placeholder="Nummer, Bezeichnung oder Notiz …" autocomplete="off"></div>
+     <select id="listSort" aria-label="Sortierung">
+      <option value="updated">Zuletzt geändert</option>
+      <option value="number">Programmnummer</option>
+      <option value="name">Bezeichnung</option>
+     </select>
+    </div>
+    <div class="cards" id="listCards"></div>
+   </section>
+
+   <!-- Programmblatt -->
+   <section class="view programview" id="view-program" hidden>
+    <article class="sheet" id="sheet">
+     <div class="sheethead">
+      <div class="sheettitle"><h1>KAVEH CMS</h1><p>TECHNISCHES PROGRAMMBLATT</p></div>
+      <div class="sheetids">
+       <label for="fNumber">Programm Nr.</label><input id="fNumber" data-field="number" autocomplete="off" required>
+       <label for="fName">Bezeichnung</label><input id="fName" data-field="name" autocomplete="off" placeholder="z. B. Halterung">
+       <label for="fSetup">Einrichtung Nr.</label><input id="fSetup" data-field="setup" autocomplete="off" placeholder="z. B. E-245">
+      </div>
+      <span class="sheetaxes" data-axes></span>
+     </div>
+
+     <section class="sheetsec">
+      <input class="handtitle" id="fPointLabel" data-field="pointLabel" placeholder="Koordinaten (Original)" aria-label="Überschrift der Koordinaten">
+      <div class="axesgrid">
+       <div class="axis" data-axis="x"></div>
+       <div class="axis" data-axis="y"></div>
+       <div class="axis" data-axis="z"></div>
+      </div>
+     </section>
+
+     <section class="sheetsec">
+      <h2 class="hand">Fotos &amp; Markierungen</h2>
+      <div class="photoarea" id="photoArea">
+       <div class="stagebox">
+        <div class="stage" id="stage">
+         <button type="button" class="stagenav prev" id="stagePrev" aria-label="Vorheriges Foto" data-icon="chevleft"></button>
+         <div class="stageinner" id="stageInner">
+          <img id="stageImg" alt="">
+          <svg id="stageSvg" class="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+         </div>
+         <button type="button" class="stagenav next" id="stageNext" aria-label="Nächstes Foto" data-icon="chevright"></button>
+         <button type="button" class="stagezoom" id="stageZoom" aria-label="Vollbild" data-icon="expand"></button>
+        </div>
+        <div class="dropzone" id="dropzone">
+         <span data-icon="image"></span>
+         <b>Fotos hinzufügen</b>
+         <span class="muted">Klicken oder Bilder hierher ziehen</span>
+        </div>
+        <div class="stagecap" id="stageCap"></div>
+       </div>
+       <div class="thumbcol" id="thumbCol"></div>
+       <div class="tools" id="tools">
+        <h3>Markierungswerkzeuge</h3>
+        <div class="toolbtns">
+         <button type="button" data-tool="arrow"><span data-icon="arrow"></span><span>Pfeil</span></button>
+         <button type="button" data-tool="circle"><span data-icon="circle"></span><span>Kreis</span></button>
+         <button type="button" data-tool="text"><span data-icon="text"></span><span>Text</span></button>
+         <button type="button" data-tool="line"><span data-icon="line"></span><span>Linie</span></button>
+        </div>
+        <div class="colors" id="colors"></div>
+        <div class="toolbtns">
+         <button type="button" data-tool="eraser"><span data-icon="eraser"></span><span>Radierer</span></button>
+         <button type="button" id="undoBtn"><span data-icon="undo"></span><span>Rückgängig</span></button>
+        </div>
+        <p class="hint" id="toolHint"></p>
+       </div>
+      </div>
+      <div class="printphotos" id="printPhotos"></div>
+     </section>
+
+     <section class="sheetsec">
+      <h3 class="label">Notizen</h3>
+      <textarea id="fNotes" class="notes" data-field="notes" rows="7" placeholder="– Wichtige Hinweise zum Schneiden …"></textarea>
+     </section>
+
+     <div class="metarow">
+      <section>
+       <h3 class="label">Weitere Informationen</h3>
+       <table class="infotable">
+        <tr><th>Erstellt am:</th><td id="infoCreated"></td></tr>
+        <tr><th>Letzte Änderung:</th><td id="infoUpdated"></td></tr>
+        <tr><th>Bearbeiter:</th><td id="infoEditor"></td></tr>
+       </table>
+      </section>
+      <section>
+       <h3 class="label">Anhänge</h3>
+       <div class="attachments" id="attachList"></div>
+       <label class="btn small ghost attachbtn noprint" for="attachInput"><span data-icon="clip"></span>Datei anhängen</label>
+       <input id="attachInput" type="file" multiple hidden>
+      </section>
+     </div>
+
+     <footer class="sheetfoot"><span class="hand">Präzision ist unsere Stärke</span><span class="footlogo"><span data-axes></span><b>Kaveh CMS</b></span></footer>
+    </article>
+
+    <aside class="sidepanel noprint">
+     <section class="card">
+      <div class="cardhead"><span data-icon="pin"></span><b>Programmansicht</b><a href="#/" class="iconbtn small" aria-label="Schließen" data-icon="x"></a></div>
+      <div class="photolist" id="photoList"></div>
+      <label class="btn primary wide" for="photoInput"><span data-icon="plus"></span>Neues Foto hinzufügen</label>
+      <input id="photoInput" type="file" accept="image/*" multiple hidden>
+     </section>
+     <section class="card">
+      <div class="cardhead"><b>Aktuelle Markierungen</b></div>
+      <div class="marklist" id="markList"></div>
+     </section>
+     <section class="card">
+      <div class="cardhead"><span data-icon="pin"></span><b>Ansicht &amp; Druck</b></div>
+      <button type="button" class="listbtn" id="pdfBtn"><span data-icon="pdf"></span>Als PDF exportieren</button>
+      <button type="button" class="listbtn" id="printBtn"><span data-icon="printer"></span>Drucken (A4)</button>
+      <button type="button" class="listbtn" id="saveImgBtn"><span data-icon="download"></span>Bild speichern</button>
+      <hr>
+      <button type="button" class="listbtn" id="dupBtn"><span data-icon="copy"></span>Programm duplizieren</button>
+      <button type="button" class="listbtn danger" id="deleteBtn"><span data-icon="trash"></span>Programm löschen</button>
+     </section>
+    </aside>
+   </section>
+
+   <!-- Backup -->
+   <section class="view narrow" id="view-backup" hidden>
+    <div class="pagehead"><div><h1>Import / Export</h1><p class="muted">Sichere alle Programme samt Fotos, Markierungen und Anhängen in einer Datei.</p></div></div>
+    <div class="panel">
+     <h2>Backup exportieren</h2>
+     <p class="muted">Lädt eine ZIP-Datei mit allen deinen Programmen herunter. Bewahre sie an einem sicheren Ort auf (z. B. USB-Stick oder Cloud).</p>
+     <a class="btn primary" id="exportBtn" href="/api/export" download><span data-icon="download"></span>Backup herunterladen</a>
+    </div>
+    <div class="panel">
+     <h2>Backup importieren</h2>
+     <p class="muted">Programme mit gleicher Nummer werden durch die importierten Daten ersetzt. Backups der alten Offline-Version (.json) werden ebenfalls unterstützt.</p>
+     <label class="btn" for="importFile"><span data-icon="upload"></span>Datei auswählen …</label>
+     <input id="importFile" type="file" accept=".zip,.json,application/zip,application/json" hidden>
+    </div>
+    <div class="panel">
+     <h2>Beispieldatensatz</h2>
+     <p class="muted">Legt ein Demo-Programm an, um die App auszuprobieren. Beispielwerte vor jeder Maschinenverwendung gegen die freigegebenen Produktionsdaten prüfen.</p>
+     <button type="button" class="btn" id="sampleBtn">Beispiel laden</button>
+    </div>
+   </section>
+
+   <!-- Einstellungen -->
+   <section class="view narrow" id="view-settings" hidden>
+    <div class="pagehead"><div><h1>Einstellungen</h1><p class="muted" id="settingsUser"></p></div></div>
+    <div class="panel">
+     <h2>Darstellung</h2>
+     <div class="segmented" id="themeChoice">
+      <button type="button" data-theme-set="system">System</button>
+      <button type="button" data-theme-set="light">Hell</button>
+      <button type="button" data-theme-set="dark">Dunkel</button>
+     </div>
+    </div>
+    <div class="panel">
+     <h2>Passwort ändern</h2>
+     <form id="pwForm" class="formgrid">
+      <input type="text" autocomplete="username" id="pwUser" hidden>
+      <label for="pwCurrent">Aktuelles Passwort</label><input id="pwCurrent" type="password" autocomplete="current-password" required>
+      <label for="pwNew">Neues Passwort (mind. 8 Zeichen)</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="pwNew2">Neues Passwort wiederholen</label><input id="pwNew2" type="password" autocomplete="new-password" required>
+      <p class="error" id="pwError" hidden></p>
+      <div><button class="btn primary" type="submit">Passwort ändern</button></div>
+     </form>
+    </div>
+    <div class="panel" id="adminSection" hidden>
+     <h2>Benutzer verwalten</h2>
+     <div id="userList"></div>
+     <form id="newUserForm" class="formgrid newuser">
+      <h3>Neuen Benutzer anlegen</h3>
+      <label for="nuName">Benutzername</label><input id="nuName" autocomplete="off" autocapitalize="none" required>
+      <label for="nuPass">Passwort (mind. 8 Zeichen)</label><input id="nuPass" type="text" autocomplete="off" minlength="8" required>
+      <label class="check"><input id="nuAdmin" type="checkbox"> Administrator</label>
+      <p class="error" id="nuError" hidden></p>
+      <div><button class="btn primary" type="submit">Benutzer anlegen</button></div>
+     </form>
+    </div>
+   </section>
+
+   <!-- Hilfe -->
+   <section class="view narrow" id="view-help" hidden>
+    <div class="pagehead"><div><h1>Hilfe</h1><p class="muted">So funktioniert Kaveh CMS.</p></div></div>
+    <div class="panel helptext">
+     <h2>Programm anlegen</h2>
+     <p>Auf <b>Neues Programm</b> klicken und die Programmnummer eingeben. Danach öffnet sich das Programmblatt. Alle Eingaben werden automatisch gespeichert – unten rechts steht <b>Gespeichert</b>, sobald alles auf dem Server ist.</p>
+     <h2>Koordinaten</h2>
+     <p>Für X, Y und Z gibt es jeweils den <b>Original</b>- und den <b>Geändert</b>-Wert. Die Differenz (Δ) wird automatisch berechnet.</p>
+     <h2>Fotos markieren</h2>
+     <p>Fotos über <b>Neues Foto hinzufügen</b> hochladen oder ins Fotofeld ziehen. Dann ein Werkzeug wählen (Pfeil, Kreis, Text, Linie), eine Farbe antippen und auf dem Foto ziehen. Mit dem <b>Radierer</b> eine Markierung antippen, um sie zu löschen. Das Originalfoto bleibt immer unverändert.</p>
+     <h2>Drucken &amp; PDF</h2>
+     <p><b>Drucken (A4)</b> druckt das Programmblatt mit allen Fotos und Markierungen. Für ein PDF im Druckdialog „Als PDF speichern“ wählen. <b>Bild speichern</b> lädt das aktuelle Foto mit Markierungen als Bild herunter.</p>
+     <h2>Auf dem Handy installieren</h2>
+     <p>iPhone: in Safari <b>Teilen → Zum Home-Bildschirm</b>. Android: im Chrome-Menü <b>App installieren</b>.</p>
+     <h2>Datensicherung</h2>
+     <p>Regelmäßig unter <b>Import / Export</b> ein Backup herunterladen.</p>
+    </div>
+   </section>
+  </main>
+ </div>
+
+ <footer class="statusbar">
+  <span data-icon="folder"></span><b>Gespeicherte Programme</b><span class="muted" id="statusCount"></span>
+  <span class="spacer"></span>
+  <span class="savestate" id="saveState" data-state="saved"><span data-icon="check"></span><span id="saveText">Gespeichert</span></span>
+ </footer>
+</div>
+
+<!-- ============================== dialogs -->
 <dialog id="askDlg">
  <form method="dialog">
   <p id="askText"></p>
   <input id="askInput" hidden>
-  <div class="actions end"><button value="cancel" id="askCancel">Abbrechen</button><button value="ok" class="primary" id="askOk">OK</button></div>
+  <div class="actions end"><button type="button" class="btn" data-close>Abbrechen</button><button value="ok" class="btn primary" id="askOk">OK</button></div>
  </form>
 </dialog>
 
-<!-- Photo viewer -->
+<dialog id="newDlg">
+ <form method="dialog" id="newForm">
+  <h2>Neues Programm</h2>
+  <label for="newNumber">Programmnummer *</label><input id="newNumber" required autocomplete="off" placeholder="z. B. 1645540">
+  <label for="newName">Bezeichnung</label><input id="newName" autocomplete="off" placeholder="z. B. Halterung">
+  <p class="error" id="newError" hidden></p>
+  <div class="actions end"><button type="button" class="btn" data-close>Abbrechen</button><button value="ok" class="btn primary" id="newOk">Anlegen</button></div>
+ </form>
+</dialog>
+
 <dialog id="viewer" class="viewer">
- <img id="viewerImg" alt="Tile-Foto">
+ <div class="viewerstage"><div class="viewerinner" id="viewerInner"><img id="viewerImg" alt=""><svg id="viewerSvg" class="overlay" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
  <div class="viewerbar">
-  <button type="button" id="viewerPrev" aria-label="Vorheriges Foto">‹</button>
+  <button type="button" class="btn" id="viewerPrev" aria-label="Vorheriges Foto" data-icon="chevleft"></button>
   <span id="viewerCount"></span>
-  <a class="filebtn" id="viewerDownload" download>Download</a>
-  <button type="button" id="viewerClose">Schließen</button>
-  <button type="button" id="viewerNext" aria-label="Nächstes Foto">›</button>
+  <a class="btn" id="viewerDownload" download><span data-icon="download"></span>Original</a>
+  <button type="button" class="btn" id="viewerClose">Schließen</button>
+  <button type="button" class="btn" id="viewerNext" aria-label="Nächstes Foto" data-icon="chevright"></button>
  </div>
 </dialog>
 
+<div class="popover menu" id="photoMenu" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script src="/app.js"></script>
 </body>

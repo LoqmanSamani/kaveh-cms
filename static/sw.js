@@ -2,9 +2,10 @@
    - App files: network first, cached copy when offline (so updates always arrive).
    - Program list and photos: cached for read-only offline use; cleared on logout.
    - Everything that changes data always goes to the server. */
-const SHELL_CACHE = 'kaveh-cms-shell-v2';
+const SHELL_CACHE = 'kaveh-cms-shell-v3';
 const DATA_CACHE = 'kaveh-cms-data';
-const SHELL = ['/', '/app.js', '/style.css', '/manifest.webmanifest', '/icon.svg'];
+const SHELL = ['/', '/app.js', '/style.css', '/theme.js', '/manifest.webmanifest', '/icon.svg',
+  '/fonts/kalam-400.woff2', '/fonts/kalam-700.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -48,7 +49,7 @@ self.addEventListener('fetch', e => {
   if (url.pathname === '/api/records' && !url.search) return e.respondWith(networkFirst(req, DATA_CACHE, true));
   if (url.pathname === '/api/status') return e.respondWith(networkFirst(req, DATA_CACHE, true));
   if (url.pathname.startsWith('/photos/') && !url.search) return e.respondWith(cacheFirst(req));
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/files/')) return;
   if (SHELL.includes(url.pathname) || url.pathname === '/index.html' || req.mode === 'navigate') {
     e.respondWith(networkFirst(url.pathname === '/index.html' || req.mode === 'navigate' ? new Request('/') : req, SHELL_CACHE, false));
   }

@@ -8,19 +8,28 @@ This replaces the offline prototype (`Kaveh_CMS_Starter.zip`). That version kept
 
 ## Features
 
+- **Technical program sheet** ("Technisches Programmblatt"): program number, name, setup number, and X/Y/Z
+  **original vs. changed** values with the difference (Δ) calculated automatically. Everything saves automatically;
+  the status bar shows "Gespeichert".
+- **Photos & markings:** unlimited photos per program. Arrow, circle, text and line tools in several colours, an eraser
+  and undo. Markings are stored separately, so the original photo stays untouched. Photos are shrunk before upload
+  (max. 2400 px, location data stripped). Includes captions, reordering, a full-screen viewer, and download of the
+  original or of the image with markings.
+- **Attachments** (PDF drawings or any other file, up to 25 MB each).
+- **Print / PDF:** an A4 print layout of the sheet including every photo with its markings.
+- **Duplicate** a program, including its photos, markings and attachments.
+- **Light and dark theme.** Follows the device setting by default; switch with the sun/moon button or in Einstellungen.
+- Sidebar with all saved programs, global search (number, name, notes), a dashboard and a program overview.
 - Accounts with username and password. **The first account created becomes the administrator.**
-  Admins can add users, reset passwords, grant or remove admin rights and delete users (menu **Konto**).
-  Public sign-up is off by default (see `KCMS_ALLOW_REGISTRATION`).
-- Each user has their own private list of programs.
-- Unlimited photos per program. Photos are shrunk in the browser before upload (max. 2400 px, location data stripped),
-  stored on the server, and shown as a gallery with a full-screen viewer (swipe or arrow keys) and download.
-- Edit mode: remove photos, change photo order, add more photos.
-- Search by program number or keyword in the notes, plus a filter on the list.
-- Backup: export everything (programs and photos) as one ZIP file; import it again on any account.
-  Backups from the old offline prototype (`kaveh-cms-backup.json`) can also be imported.
-- Installable as a home-screen app (PWA). When offline, the last loaded list and viewed photos stay readable.
+  Admins can add users, reset passwords, grant or remove admin rights and delete users (Einstellungen).
+  Public sign-up is off by default (see `KCMS_ALLOW_REGISTRATION`). Each user has their own private programs.
+- Backup: export everything (programs, photos, markings, attachments) as one ZIP file and import it again on any
+  account. Backups from the old offline prototype (`kaveh-cms-backup.json`) can also be imported.
+- Works on phones, tablets and PCs, and can be installed as a home-screen app. When offline, the last loaded data
+  stays readable.
 - Security: scrypt password hashing, HttpOnly session cookies (30 days), login rate limiting, CSRF protection,
-  content-type checking of uploads, strict Content-Security-Policy.
+  content checks on uploads, strict Content-Security-Policy.
+- Existing databases are upgraded automatically on start; no data is lost.
 
 ## Run locally
 
@@ -55,6 +64,7 @@ python3 app.py set-password NAME
 | `KCMS_DATA_DIR` | `./data` | Where database and photos are stored (must be persistent) |
 | `KCMS_ALLOW_REGISTRATION` | `0` | `1` = anyone can create an account from the login page |
 | `KCMS_MAX_PHOTO_MB` | `15` | Max size per photo |
+| `KCMS_MAX_FILE_MB` | `25` | Max size per attachment |
 | `KCMS_MAX_IMPORT_MB` | `300` | Max backup file size for import |
 | `KCMS_COOKIE_SECURE` | `auto` | `auto` sets the Secure flag when served over HTTPS |
 | `KCMS_TRUST_PROXY` | `1` | Use `X-Forwarded-For/Proto` from the reverse proxy |
@@ -110,3 +120,5 @@ fly deploy
 
 - Example values are demo data only. Always check them against the approved production data before using a machine.
 - Follow your employer's rules on photos and technical production information.
+
+The handwriting font *Kalam* (`static/fonts/`) is licensed under the SIL Open Font License 1.1.

@@ -227,6 +227,110 @@ class ApiTest(unittest.TestCase):
             self.assertIn('Content-Security-Policy', headers)
         self.assertEqual(c.call('GET', '/../app.py')[0], 404)
 
+    def test_sheet_features(self):
+        c = Client(self.base)
+        status, data = c.json('POST', '/api/register', {'username': 'sheet', 'password': 'geheim123'})
+        if status == 403:  # admin already exists when run after test_full_flow
+            self.admin.json('POST', '/api/login', {'username': 'kaveh', 'password': 'neuesPasswort'})
+            self.admin.json('POST', '/api/users', {'username': 'sheet', 'password': 'geheim123'})
+            self.assertEqual(c.json('POST', '/api/login', {'username': 'sheet', 'password': 'geheim123'})[0], 200)
+        status, data = c.json('POST', '/api/records', {'number': '1002', 'name': 'Halterung', 'setup': 'E-245',
+                                                       'pointLabel': '9 Punkte', 'x': '230.0', 'x2': '234.3'})
+        self.assertEqual(status, 201, data)
+        rec = data['record']
+        self.assertEqual((rec['name'], rec['setup'], rec['x2'], rec['editor']), ('Halterung', 'E-245', '234.3', 'sheet'))
+        rid = rec['id']
+        # partial update keeps other fields
+        status, data = c.json('PUT', '/api/records/%d' % rid, {'notes': 'Notiz'})
+        self.assertEqual((data['record']['name'], data['record']['notes']), ('Halterung', 'Notiz'))
+
+        # photo with size + annotations
+        boundary = 'BOUNDARY123'
+        body = b''.join(b'--' + boundary.encode() + b'\r\nContent-Disposition: form-data; name="' + n + b'"\r\n\r\n' + v + b'\r\n'
+                        for n, v in ((b'photo', make_png()), (b'width', b'64'), (b'height', b'48')))
+        body += b'--' + boundary.encode() + b'--\r\n'
+        status, raw, _ = c.call('POST', '/api/records/%d/photos' % rid, data=body,
+                                content_type='multipart/form-data; boundary=' + boundary)
+        photo = json.loads(raw)['photo']
+        self.assertEqual((photo['width'], photo['height'], photo['annotations']), (64, 48, []))
+        marks = [{'t': 'arrow', 'c': '#E53935', 'x1': 0.1, 'y1': 0.2, 'x2': 0.5, 'y2': 0.5},
+                 {'t': 'text', 'c': '#1e88e5', 'x1': 0.3, 'y1': 0.3, 'x2': 0.3, 'y2': 0.3, 'text': '+4,3 mm'}]
+        status, data = c.json('PUT', '/api/photos/' + photo['id'], {'annotations': marks, 'caption': 'Halter'})
+        self.assertEqual(status, 200, data)
+        self.assertEqual(data['photo']['annotations'][0]['c'], '#e53935')
+        self.assertEqual(data['photo']['caption'], 'Halter')
+        for bad in ([{'t': 'blob'}], [{'t': 'line', 'c': 'red'}], [{'t': 'text', 'c': '#000000', 'text': ''}],
+                    [{'t': 'line', 'c': '#000000', 'x1': 9}]):
+            self.assertEqual(c.json('PUT', '/api/photos/' + photo['id'], {'annotations': bad})[0], 400, bad)
+
+        # attachments
+        pdf = b'%PDF-1.4\n%fake drawing\n'
+        status, raw, _ = c.call('POST', '/api/records/%d/files' % rid, data=pdf, content_type='application/octet-stream')
+        self.assertEqual(status, 201)
+        req = urllib.request.Request(self.base + '/api/records/%d/files' % rid, data=b'hello', method='POST',
+                                     headers={'X-KCMS': '1', 'X-Filename': 'Zeichnung%20%C3%BC.txt'})
+        with c.opener.open(req) as res:
+            files = json.loads(res.read())['files']
+        self.assertEqual([f['mime'] for f in files], ['application/pdf', 'application/octet-stream'])
+        self.assertEqual(files[1]['name'], 'Zeichnung ü.txt')
+        status, raw, headers = c.call('GET', files[0]['url'])
+        self.assertEqual((status, raw, headers['Content-Type']), (200, pdf, 'application/pdf'))
+        self.assertTrue(headers['Content-Disposition'].startswith('inline'))
+        status, raw, headers = c.call('GET', files[1]['url'])
+        self.assertTrue(headers['Content-Disposition'].startswith('attachment'))
+        self.assertEqual(Client(self.base).call('GET', files[0]['url'])[0], 401)
+
+        # duplicate copies photos, marks and attachments
+        status, data = c.json('POST', '/api/records/%d/duplicate' % rid, {'number': '1002-B'})
+        self.assertEqual(status, 201, data)
+        dup = data['record']
+        self.assertEqual((dup['name'], len(dup['photos']), len(dup['files'])), ('Halterung', 1, 2))
+        self.assertEqual(dup['photos'][0]['annotations'], data['record']['photos'][0]['annotations'])
+        self.assertNotEqual(dup['photos'][0]['id'], photo['id'])
+        self.assertEqual(c.json('POST', '/api/records/%d/duplicate' % rid, {'number': '1002-B'})[0], 409)
+
+        # export / import round trip keeps everything
+        status, raw, _ = c.call('GET', '/api/export')
+        for r in c.json('GET', '/api/records')[1]['records']:
+            c.json('DELETE', '/api/records/%d' % r['id'])
+        status, data = c.json('POST', '/api/import', data=raw, content_type='application/zip')
+        self.assertEqual((data['imported'], data['photos'], data['files']), (2, 2, 4))
+        recs = {r['number']: r for r in c.json('GET', '/api/records')[1]['records']}
+        r = recs['1002']
+        self.assertEqual((r['setup'], r['pointLabel'], r['x2'], r['notes']), ('E-245', '9 Punkte', '234.3', 'Notiz'))
+        self.assertEqual(r['photos'][0]['caption'], 'Halter')
+        self.assertEqual(len(r['photos'][0]['annotations']), 2)
+        self.assertEqual(sorted(f['name'] for f in r['files']), ['Zeichnung ü.txt', 'datei'])
+
+
+class MigrationTest(unittest.TestCase):
+    def test_old_database_is_upgraded(self):
+        import sqlite3
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, 'photos'))
+            con = sqlite3.connect(os.path.join(tmp, 'kaveh-cms.db'))
+            con.executescript("""
+                CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    pw_hash TEXT NOT NULL, is_admin INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+                CREATE TABLE records (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, number TEXT NOT NULL,
+                    x TEXT NOT NULL DEFAULT '', y TEXT NOT NULL DEFAULT '', z TEXT NOT NULL DEFAULT '',
+                    notes TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                    UNIQUE (user_id, number));
+                CREATE TABLE photos (id TEXT PRIMARY KEY, record_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
+                    mime TEXT NOT NULL, size INTEGER NOT NULL, has_thumb INTEGER NOT NULL DEFAULT 0,
+                    position INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+                INSERT INTO records VALUES (1, 1, '1645540', '240', '560', '370', 'alt', '2026-11-01', '2026-11-01');
+                INSERT INTO photos VALUES ('%s', 1, 1, 'image/png', 10, 0, 0, '2026-11-01');
+            """ % ('a' * 32))
+            con.close()
+            env = dict(os.environ, KCMS_DATA_DIR=tmp)
+            code = ("import app; db = app.connect(); "
+                    "r = db.execute('SELECT * FROM records').fetchone(); "
+                    "rec = app.full_record(db, r); "
+                    "print(rec['number'], rec['x'], repr(rec['x2']), rec['photos'][0]['annotations'], rec['files'])")
+            out = subprocess.run([sys.executable, '-c', code], cwd=ROOT, env=env, capture_output=True, text=True)
+            self.assertEqual(out.stdout.strip(), "1645540 240 '' [] []", out.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()
