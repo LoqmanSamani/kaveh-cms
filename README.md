@@ -77,8 +77,14 @@ Render's free tier) lose all photos on every restart. Pick one of these:
    ```
 5. In the **Web** tab, turn on *Force HTTPS*, click **Reload**, open the address and create the admin account right away.
 
-On the free tier you click "Run until 3 months from today" in the Web tab every 3 months. Disk space is 512 MB,
-which is roughly 1,500–3,000 photos.
+On the free tier you log in once a month and click **"Run until 1 month from today"** in the Web tab
+(PythonAnywhere sends a reminder email a week before). Disk space is 512 MB, which is roughly 1,500–3,000 photos.
+
+**Live instance:** https://loqman1991.pythonanywhere.com
+
+Deploying an update after pushing to GitHub: open a PythonAnywhere **Bash console** and run
+`cd ~/kaveh-cms && git pull`, then click **Reload** in the **Web** tab.
+Backing up the data: download `~/kaveh-cms/data/` (or use *Backup exportieren* in the app).
 
 ### Option B – Your own server/VPS with Docker (around €4/month, own domain, automatic HTTPS)
 
