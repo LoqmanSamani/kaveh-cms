@@ -198,6 +198,7 @@ h2.hand{font-size:26px;color:var(--hand);margin-bottom:14px}
 .photoarea{display:grid;grid-template-columns:minmax(0,1fr) 112px 186px;gap:12px;align-items:start}
 .stagebox{min-width:0}
 .stage{position:relative;background:#0d1520;border:1px solid var(--line);border-radius:6px;aspect-ratio:4/3;overflow:hidden}
+.stage{max-height:78vh;max-height:78dvh}
 .stage.drawing,.stage.erasing{touch-action:none}
 .stage:not(.drawing):not(.erasing) .overlay{cursor:zoom-in}
 .stageinner{position:absolute;inset:0}
@@ -214,6 +215,8 @@ h2.hand{font-size:26px;color:var(--hand);margin-bottom:14px}
 .stagezoom{right:10px;bottom:10px;width:34px;height:34px}
 .stagenav:disabled{display:none}
 .stagecap{font-size:13px;font-weight:600;margin-top:6px;color:var(--text)}
+.stageactions{display:none;align-items:center;gap:8px;margin-top:8px}
+.stageactions .iconbtn{color:var(--muted)}
 .dropzone{border:2px dashed var(--line);border-radius:8px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);cursor:pointer;background:var(--surface2);text-align:center;padding:16px}
 .dropzone b{color:var(--text)}
 .dropzone svg{width:36px;height:36px}
@@ -224,7 +227,7 @@ h2.hand{font-size:26px;color:var(--hand);margin-bottom:14px}
 .tthumb.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .tthumb.add{display:grid;place-items:center;background:var(--surface2);color:var(--muted);border:2px dashed var(--line);outline:0}
 .tools{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
-.tools h3{font-size:13px;margin-bottom:10px;overflow-wrap:anywhere}
+.tools h3{font-size:13px;margin-bottom:10px;hyphens:auto;-webkit-hyphens:auto}
 .toolbtns{display:grid;gap:2px}
 .toolbtns button{display:flex;align-items:center;gap:12px;border:1px solid transparent;background:transparent;color:var(--text);font:inherit;font-size:14px;padding:7px 8px;border-radius:8px;cursor:pointer;text-align:left}
 .toolbtns button:hover{background:var(--accent-soft)}
@@ -331,6 +334,22 @@ dialog.viewer[open]{display:flex;flex-direction:column}
  .tools{grid-row:1;grid-column:2}
 }
 @media (max-width:900px){
+ html{scroll-padding-top:76px}
+ .app{display:flex;flex-direction:column;height:auto;min-height:100vh;min-height:100dvh}
+ .shell{flex:1}
+ .topbar{position:sticky;top:0}
+ .content{overflow:visible}
+ .statusbar{position:sticky;bottom:0;z-index:20}
+ input,textarea,select,.globalsearch input,.sidesearch input,.field-icon input{font-size:16px}
+ .searchdrop{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 62px);max-height:65vh}
+ .stageactions{display:flex}
+ .card-photos,.card-marks{display:none}
+ .sidepanel{grid-template-columns:1fr}
+ .cards{grid-template-columns:1fr;gap:10px}
+ .pcard{flex-direction:row;align-items:center}
+ .pcard:hover{transform:none}
+ .pcard .pimg{width:84px;height:84px;aspect-ratio:auto;flex-shrink:0}
+ .pcard .pbody{min-width:0;flex:1;padding:10px 12px}
  .shell,.app.collapsed .shell{grid-template-columns:1fr}
  .menubtn{display:inline-grid}
  .sidebar{position:fixed;z-index:60;top:0;bottom:0;left:0;width:min(300px,86vw);transform:translateX(-102%);transition:transform .2s;padding-top:calc(env(safe-area-inset-top) + 12px)}
@@ -360,7 +379,14 @@ dialog.viewer[open]{display:flex;flex-direction:column}
  .globalsearch{max-width:none}
  .topactions .topbtn:not([data-theme-toggle]){display:none}
  .photoarea{grid-template-columns:1fr}
- .tools{grid-row:auto;grid-column:auto}
+ .tools{grid-row:auto;grid-column:auto;order:2}
+ .thumbcol{grid-row:auto;grid-column:auto;order:3;grid-auto-columns:96px}
+ .stats{grid-template-columns:1fr 1fr;gap:10px}
+ .stat{padding:12px;gap:10px}
+ .stat .ico{width:38px;height:38px}
+ .pagehead h1{font-size:22px}
+ .viewerbar{gap:6px}
+ .viewerbar .btn{padding:9px 11px}
  .toolbtns{grid-template-columns:repeat(4,1fr)}
  .toolbtns button{flex-direction:column;gap:2px;font-size:11px;padding:6px 2px;text-align:center}
  .tools h3{display:none}
@@ -368,6 +394,19 @@ dialog.viewer[open]{display:flex;flex-direction:column}
  .handtitle,h2.hand{font-size:22px}
  .statusbar{padding-left:14px;padding-right:14px;font-size:13px}
  .statusbar>b{display:none}
+}
+
+@media (max-width:900px) and (max-height:500px){
+ .topbar,.statusbar{position:static}
+ html{scroll-padding-top:8px}
+ .searchdrop{top:62px;position:absolute;left:0;right:0}
+}
+@media (pointer:coarse){
+ .iconbtn{width:44px;height:44px}
+ .iconbtn.small{width:40px;height:40px}
+ .toolbtns button{min-height:44px}
+ .colors button{width:32px;height:32px}
+ .sideitems a,.mainnav a,.mainnav button{min-height:44px}
 }
 
 /* ---------------------------------------------------------------- print (A4) */

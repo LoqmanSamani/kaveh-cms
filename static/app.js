@@ -59,7 +59,9 @@ const ICONS = {
   up: 'M12 19V5M6 11l6-6 6 6',
   down: 'M12 5v14M6 13l6 6 6-6',
   tag: 'M3 12V4h8l10 10-8 8zM7.5 7.5h.01',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 10.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z',
 };
+const phoneQuery = matchMedia('(max-width: 640px)');
 
 function icon(name) {
   const svg = document.createElementNS(SVGNS, 'svg');
@@ -461,6 +463,7 @@ function showView(name) {
   document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-' + name; });
   document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === name));
   $('content').scrollTop = 0;
+  window.scrollTo(0, 0);
   if (name === 'home') renderHome();
   if (name === 'list') renderList();
   if (name === 'settings') renderSettings();
@@ -777,6 +780,7 @@ function renderPhotos() {
   $('stage').hidden = !p;
   $('dropzone').hidden = !!p;
   $('tools').classList.toggle('disabled', !p || state.offline);
+  $('stageDelete').hidden = $('stageMenu').hidden = !p;
   if (p) {
     const img = $('stageImg');
     if (img.dataset.id !== p.id) {
@@ -849,7 +853,11 @@ $('stagePrev').addEventListener('click', () => selectPhoto(Math.max(0, state.pho
 $('stageNext').addEventListener('click', () => selectPhoto(Math.min(state.current.photos.length - 1, state.photoIdx + 1)));
 $('stageZoom').addEventListener('click', () => openViewer(state.current.photos, state.photoIdx));
 
-$('photoInput').addEventListener('change', e => { const files = [...e.target.files]; e.target.value = ''; uploadPhotos(files); });
+for (const id of ['photoInput', 'cameraInput']) {
+  $(id).addEventListener('change', e => { const files = [...e.target.files]; e.target.value = ''; uploadPhotos(files); });
+}
+$('stageDelete').addEventListener('click', () => { if (curPhoto()) deletePhoto(curPhoto()); });
+$('stageMenu').addEventListener('click', e => { if (curPhoto()) openPhotoMenu(e.currentTarget, state.photoIdx); });
 $('dropzone').addEventListener('click', () => $('photoInput').click());
 for (const zone of ['dropzone', 'stage', 'thumbCol']) {
   const z = $(zone);
@@ -1033,7 +1041,27 @@ stageSvg.addEventListener('pointerdown', async e => {
   stageSvg.setPointerCapture(e.pointerId);
   renderStageOverlay(draw.active);
 });
-stageSvg.addEventListener('click', () => { if (!draw.tool && curPhoto()) openViewer(state.current.photos, state.photoIdx); });
+// swipe left/right on the photo (when no drawing tool is active) to change photos
+const swipe = { x: null, y: null, done: false };
+stageSvg.addEventListener('touchstart', e => {
+  swipe.done = false;
+  if (draw.tool || e.touches.length !== 1) { swipe.x = null; return; }
+  swipe.x = e.touches[0].clientX; swipe.y = e.touches[0].clientY;
+}, { passive: true });
+stageSvg.addEventListener('touchend', e => {
+  if (swipe.x == null) return;
+  const dx = e.changedTouches[0].clientX - swipe.x, dy = e.changedTouches[0].clientY - swipe.y;
+  swipe.x = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    swipe.done = true;
+    const n = state.current.photos.length;
+    selectPhoto(Math.min(n - 1, Math.max(0, state.photoIdx + (dx < 0 ? 1 : -1))));
+  }
+});
+stageSvg.addEventListener('click', () => {
+  if (swipe.done) { swipe.done = false; return; }
+  if (!draw.tool && curPhoto()) openViewer(state.current.photos, state.photoIdx);
+});
 stageSvg.addEventListener('pointermove', e => {
   if (!draw.active) return;
   const pt = svgPoint(e);
@@ -1323,6 +1351,11 @@ $('newUserForm').addEventListener('submit', async e => {
 
 /* ================================================================ start */
 
+function applyPhoneTweaks() {
+  $('globalSearch').placeholder = phoneQuery.matches ? 'Suchen' : 'Programm suchen …';
+}
+phoneQuery.addEventListener('change', applyPhoneTweaks);
+applyPhoneTweaks();
 buildAxes();
 buildColors();
 setTool(null);

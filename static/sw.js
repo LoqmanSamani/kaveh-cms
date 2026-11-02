@@ -2,7 +2,7 @@
    - App files: network first, cached copy when offline (so updates always arrive).
    - Program list and photos: cached for read-only offline use; cleared on logout.
    - Everything that changes data always goes to the server. */
-const SHELL_CACHE = 'kaveh-cms-shell-v3';
+const SHELL_CACHE = 'kaveh-cms-shell-v4';
 const DATA_CACHE = 'kaveh-cms-data';
 const SHELL = ['/', '/app.js', '/style.css', '/theme.js', '/manifest.webmanifest', '/icon.svg',
   '/fonts/kalam-400.woff2', '/fonts/kalam-700.woff2'];

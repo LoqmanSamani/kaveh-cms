@@ -155,6 +155,14 @@
          <span class="muted">Klicken oder Bilder hierher ziehen</span>
         </div>
         <div class="stagecap" id="stageCap"></div>
+        <div class="stageactions">
+         <label class="btn small" for="cameraInput"><span data-icon="camera"></span>Kamera</label>
+         <label class="btn small" for="photoInput"><span data-icon="image"></span>Galerie</label>
+         <span class="spacer"></span>
+         <button type="button" class="iconbtn" id="stageDelete" aria-label="Foto löschen" title="Foto löschen" data-icon="trash"></button>
+         <button type="button" class="iconbtn" id="stageMenu" aria-label="Weitere Aktionen" title="Weitere Aktionen" data-menu-btn="1" data-icon="dots"></button>
+        </div>
+        <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
        </div>
        <div class="thumbcol" id="thumbCol"></div>
        <div class="tools" id="tools">
@@ -202,13 +210,13 @@
     </article>
 
     <aside class="sidepanel noprint">
-     <section class="card">
+     <section class="card card-photos">
       <div class="cardhead"><span data-icon="pin"></span><b>Programmansicht</b><a href="#/" class="iconbtn small" aria-label="Schließen" data-icon="x"></a></div>
       <div class="photolist" id="photoList"></div>
       <label class="btn primary wide" for="photoInput"><span data-icon="plus"></span>Neues Foto hinzufügen</label>
       <input id="photoInput" type="file" accept="image/*" multiple hidden>
      </section>
-     <section class="card">
+     <section class="card card-marks">
       <div class="cardhead"><b>Aktuelle Markierungen</b></div>
       <div class="marklist" id="markList"></div>
      </section>
