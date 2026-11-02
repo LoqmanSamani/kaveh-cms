@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101720">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kaveh CMS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Kaveh CMS</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+ <div class="logo" aria-hidden="true">
+  <svg viewBox="0 0 100 100">
+   <path d="M49 48 L49 15 L44 22 L54 22 L49 15" fill="#168cff" stroke="#67c0ff" stroke-width="2"/>
+   <path d="M49 48 L17 66 L27 67 L22 58 L17 66" fill="#ff333b" stroke="#ff8585" stroke-width="2"/>
+   <path d="M49 48 L81 66 L71 67 L76 58 L81 66" fill="#24d34c" stroke="#83ff9b" stroke-width="2"/>
+   <path d="M49 37 L61 44 L49 51 L37 44 Z M37 44 L49 51 L49 67 L37 60 Z M61 44 L49 51 L49 67 L61 60 Z" fill="#6d7b89" stroke="#d3dde6" stroke-width="1"/>
+   <text x="49" y="10" font-size="10" text-anchor="middle" fill="#61baff" font-weight="bold">Z</text>
+   <text x="10" y="78" font-size="10" text-anchor="middle" fill="#ff545b" font-weight="bold">X</text>
+   <text x="89" y="78" font-size="10" text-anchor="middle" fill="#52ee70" font-weight="bold">Y</text>
+  </svg>
+ </div>
+ <div class="brand"><h1>Kaveh CMS</h1><p>Digitales CMS-Notizbuch</p></div>
+ <div class="usermenu" id="userMenu" hidden>
+  <span class="muted" id="userName"></span>
+  <button type="button" id="settingsBtn" title="Einstellungen">Konto</button>
+  <button type="button" id="logoutBtn">Abmelden</button>
+ </div>
+</header>
+<div id="offlineBar" class="offline" hidden>Offline – nur Lesen. Änderungen sind erst wieder mit Internetverbindung möglich.</div>
+
+<!-- Login / setup -->
+<main id="authView" class="single" hidden>
+ <section class="panel authpanel">
+  <h2 id="authTitle">Anmelden</h2>
+  <p class="small" id="authIntro"></p>
+  <form id="authForm" autocomplete="on">
+   <label for="authUser">Benutzername</label>
+   <input id="authUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+   <label for="authPass">Passwort</label>
+   <input id="authPass" name="password" type="password" autocomplete="current-password" required>
+   <div id="authPass2Wrap" hidden>
+    <label for="authPass2">Passwort wiederholen</label>
+    <input id="authPass2" type="password" autocomplete="new-password">
+   </div>
+   <p class="error" id="authError" hidden></p>
+   <div class="actions"><button class="primary" type="submit" id="authSubmit">Anmelden</button></div>
+  </form>
+  <p class="small" id="authSwitchWrap" hidden><a href="#" id="authSwitch">Neues Konto erstellen</a></p>
+ </section>
+</main>
+
+<!-- App -->
+<main id="appView" hidden>
+ <section class="panel searchpanel">
+  <h2>Programm suchen</h2>
+  <form class="searchrow" id="searchForm" role="search">
+   <input id="search" type="search" placeholder="Programmnummer oder Stichwort, z. B. 1645540" autocomplete="off" enterkeyhint="search">
+   <button class="primary" type="submit">Suchen</button>
+  </form>
+  <div id="searchResult" class="empty"></div>
+ </section>
+
+ <section class="panel" id="formPanel">
+  <h2 id="formTitle">Programm hinzufügen</h2>
+  <form id="recordForm" novalidate>
+   <label for="number">Programmnummer *</label><input id="number" required placeholder="z. B. 1645540" autocomplete="off">
+   <div class="coords">
+    <div><label for="x">X</label><input id="x" placeholder="240" inputmode="decimal" autocomplete="off"></div>
+    <div><label for="y">Y</label><input id="y" placeholder="560" inputmode="decimal" autocomplete="off"></div>
+    <div><label for="z">Z</label><input id="z" placeholder="370" inputmode="decimal" autocomplete="off"></div>
+   </div>
+   <label for="notes">Hinweise / Beschreibung</label><textarea id="notes" rows="4" placeholder="Wichtige Hinweise zum Schneiden …"></textarea>
+   <div class="photohead">
+    <label>Tile-Fotos</label>
+    <label class="filebtn small-btn" for="photo">+ Fotos hinzufügen</label>
+    <input id="photo" type="file" accept="image/*" multiple hidden>
+   </div>
+   <div id="photoEditor" class="thumbs"></div>
+   <p class="small">Beliebig viele Fotos pro Programm. Fotos werden vor dem Hochladen verkleinert und auf dem Server gespeichert.</p>
+   <p class="error" id="formError" hidden></p>
+   <div class="actions"><button class="primary" type="submit" id="saveBtn">Speichern</button><button type="button" id="newBtn">Leeren</button></div>
+  </form>
+ </section>
+
+ <section class="panel">
+  <h2>Daten sichern &amp; übertragen</h2>
+  <div class="actions"><a class="filebtn" id="exportBtn" href="/api/export" download>Backup exportieren</a><label class="filebtn" for="importFile">Backup importieren</label><input id="importFile" type="file" accept=".zip,.json,application/zip,application/json" hidden></div>
+  <p class="small">Das Backup ist eine ZIP-Datei mit allen Programmen und Fotos. Beim Import werden gleiche Programmnummern durch die importierten Daten ersetzt. Backups der alten Offline-Version (.json) können ebenfalls importiert werden.</p>
+  <div class="actions"><button type="button" id="sampleBtn">Beispieldatensatz laden</button></div>
+  <p class="small">Beispielwerte sind nur Demo-Daten; vor jeder Maschinenverwendung gegen die freigegebenen Produktionsdaten prüfen.</p>
+ </section>
+
+ <section class="panel recordsPanel">
+  <div class="recordhead"><h2>Gespeicherte Programme</h2><span id="count" class="muted">0 Programme</span></div>
+  <input id="filter" type="search" placeholder="Liste filtern …" autocomplete="off">
+  <div id="recordsList" class="empty">Noch keine Einträge.</div>
+ </section>
+</main>
+<footer>Kaveh CMS</footer>
+
+<!-- Settings dialog -->
+<dialog id="settingsDlg">
+ <form method="dialog" class="dlghead"><h2>Konto</h2><button value="close" aria-label="Schließen">✕</button></form>
+ <section>
+  <h3>Passwort ändern</h3>
+  <form id="pwForm">
+   <input type="text" autocomplete="username" id="pwUser" hidden>
+   <label for="pwCurrent">Aktuelles Passwort</label><input id="pwCurrent" type="password" autocomplete="current-password" required>
+   <label for="pwNew">Neues Passwort (mind. 8 Zeichen)</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required>
+   <label for="pwNew2">Neues Passwort wiederholen</label><input id="pwNew2" type="password" autocomplete="new-password" required>
+   <p class="error" id="pwError" hidden></p>
+   <div class="actions"><button class="primary" type="submit">Passwort ändern</button></div>
+  </form>
+ </section>
+ <section id="adminSection" hidden>
+  <h3>Benutzer verwalten</h3>
+  <div id="userList"></div>
+  <form id="newUserForm" class="newuser">
+   <h4>Neuen Benutzer anlegen</h4>
+   <label for="nuName">Benutzername</label><input id="nuName" autocomplete="off" autocapitalize="none" required>
+   <label for="nuPass">Passwort (mind. 8 Zeichen)</label><input id="nuPass" type="text" autocomplete="off" minlength="8" required>
+   <label class="check"><input id="nuAdmin" type="checkbox"> Administrator</label>
+   <p class="error" id="nuError" hidden></p>
+   <div class="actions"><button class="primary" type="submit">Benutzer anlegen</button></div>
+  </form>
+ </section>
+</dialog>
+
+<!-- Confirm / prompt dialog -->
+<dialog id="askDlg">
+ <form method="dialog">
+  <p id="askText"></p>
+  <input id="askInput" hidden>
+  <div class="actions end"><button value="cancel" id="askCancel">Abbrechen</button><button value="ok" class="primary" id="askOk">OK</button></div>
+ </form>
+</dialog>
+
+<!-- Photo viewer -->
+<dialog id="viewer" class="viewer">
+ <img id="viewerImg" alt="Tile-Foto">
+ <div class="viewerbar">
+  <button type="button" id="viewerPrev" aria-label="Vorheriges Foto">‹</button>
+  <span id="viewerCount"></span>
+  <a class="filebtn" id="viewerDownload" download>Download</a>
+  <button type="button" id="viewerClose">Schließen</button>
+  <button type="button" id="viewerNext" aria-label="Nächstes Foto">›</button>
+ </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>

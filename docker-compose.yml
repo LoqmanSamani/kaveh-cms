@@ -1,0 +1,21 @@
+# VPS setup with automatic HTTPS: set DOMAIN in a .env file next to this file
+# (e.g. DOMAIN=kaveh.example.com, DNS A record pointing to the server), then: docker compose up -d
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from ${DOMAIN} --to app:8000
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - app
+volumes:
+  caddy_data:

@@ -1,0 +1,2 @@
+# Optional: production WSGI server. The app itself only needs the Python standard library.
+waitress==3.0.2
